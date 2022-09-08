@@ -1,7 +1,13 @@
+using CalorieDiaryCalculator.Server;
 using CalorieDiaryCalculator.Server.Data;
 using CalorieDiaryCalculator.Server.Data.Models;
+using CalorieDiaryCalculator.Server.Infrastructure;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,10 +20,38 @@ builder.Services.
 
 builder.Services.
     AddDatabaseDeveloperPageExceptionFilter();
+builder.Services
+    .AddIdentity<User, IdentityRole>(options => {
+        options.Password.RequiredLength = 3;
+        options.Password.RequireDigit = false;
+        options.Password.RequireNonAlphanumeric = false;
+        options.Password.RequireUppercase = false;
+        options.Password.RequireLowercase = false;
+    })
+    .AddEntityFrameworkStores<CalorieDiaryCalculatorDbContext>();
+
+var applicationSettingsConfiguration = builder.Configuration.GetSection("ApplicationSettingsSection");
+builder.Services.
+    Configure<AppSettings>(applicationSettingsConfiguration);
+
+var appSettings = applicationSettingsConfiguration.Get<AppSettings>();
+var key = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(appSettings.Secret));
 
 builder.Services
-    .AddIdentity<User, IdentityRole>()
-    .AddEntityFrameworkStores<CalorieDiaryCalculatorDbContext>();
+    .AddAuthentication(x => {
+    x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer(x => {
+        x.RequireHttpsMetadata = false;
+        x.SaveToken = true;
+        x.TokenValidationParameters = new TokenValidationParameters {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = key,
+            ValidateAudience = false,
+            ValidateIssuer = false // TODO: set to "true" may be
+        };
+    });
 
 builder.Services.AddControllers();
 
@@ -38,6 +72,11 @@ app.UseHttpsRedirection();
 
 app.UseRouting();
 
+app.UseCors(x => x
+                .AllowAnyOrigin()
+                .AllowAnyMethod()
+                .AllowAnyHeader());
+
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -49,5 +88,7 @@ app.UseEndpoints(endpoints => {
 //    name: "default",
 //    pattern: "{controller=Home}/{action=Index}/{id?}");
 //app.MapRazorPages();
+
+app.ApplyMigration();
 
 app.Run();
