@@ -29,7 +29,7 @@ namespace CalorieDiaryCalculator.Server.Controllers {
             var result = await this.userManager.CreateAsync(user, model.Password);
 
             if (result.Succeeded) {
-                return this.Ok("Created");
+                return this.Ok();
             }
 
             return this.BadRequest(result.Errors);

@@ -8,8 +8,8 @@ import { environment } from '../../environments/environment';
 })
 export class AuthService {
 
-  private loginPath = environment.apiUrl + 'login';
-  private registerPath = environment.apiUrl + 'register';
+  private loginPath = environment.apiUrl + 'identity/login';
+  private registerPath = environment.apiUrl + 'identity/register';
 
   constructor(
     private httpClient: HttpClient
@@ -17,11 +17,24 @@ export class AuthService {
 
   }
 
-  login(data): Observable<any> {
-    return this.httpClient.post(this.loginPath, data);
+  login(data: any): Observable<any> {
+    return this.httpClient.post(
+      this.loginPath,
+      data,
+      {responseType: 'text'}); //TODO: change response in BE to be in JSON format instead of text
   }
 
-  register(data): Observable<any> {
+  register(data: any): Observable<any> {
     return this.httpClient.post(this.registerPath, data);
   }
+  
+
+  saveToken(token: any) {
+    localStorage.setItem('token', token)
+  }
+
+  getToken() {
+    localStorage.getItem('token');
+  }
+
 }
