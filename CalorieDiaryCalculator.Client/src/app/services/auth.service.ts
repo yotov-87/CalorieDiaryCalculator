@@ -20,8 +20,8 @@ export class AuthService {
   login(data: any): Observable<any> {
     return this.httpClient.post(
       this.loginPath,
-      data,
-      {responseType: 'text'}); //TODO: change response in BE to be in JSON format instead of text
+      data
+    );
   }
 
   register(data: any): Observable<any> {
