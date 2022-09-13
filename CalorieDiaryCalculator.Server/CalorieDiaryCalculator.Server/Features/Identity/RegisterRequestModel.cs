@@ -1,8 +1,12 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using static CalorieDiaryCalculator.Server.Data.Validation.User;
 
-namespace CalorieDiaryCalculator.Server.Models.Identity {
-    public class RegisterRequestModel {
+namespace CalorieDiaryCalculator.Server.Features.Identity
+{
+    public class RegisterRequestModel
+    {
         [Required]
+        [MinLength(MinUserNameLength)]
         public string UserName { get; set; }
 
         [Required]
